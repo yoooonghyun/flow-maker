@@ -1,22 +1,24 @@
-/*
- * Copyright (c) 2021 Medir Inc.
- * Created on Sat Oct 02 2021
- */
-
-/* NestJS libraries */
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-/* Installed libraries */
-/* Module */
 import { ConfigModule } from '@nestjs/config';
 import { HttpLogger } from 'src/middleware/http.logger';
+import { ResolverModule } from 'src/resolver/resolver.module';
+
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true })],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      sortSchema: true,
+      playground: process.env.NODE_ENV !== 'PRODUCTION',
+      include: [ResolverModule],
+    }),
+    ResolverModule,
+  ],
 })
 export class AppModule implements NestModule {
-  constructor() {}
-
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(HttpLogger).forRoutes('/');
   }
